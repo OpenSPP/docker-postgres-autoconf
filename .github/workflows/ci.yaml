@@ -38,6 +38,11 @@ jobs:
           - "16"
           - "15"
           - "13"
+        # Build for both arm & x86
+        platform:
+          - "amd64"
+          - "arm64"
+
     env:
       # Indicates what's the equivalent to tecnativa/postgres-autoconf:latest image
       LATEST_RELEASE: "16-alpine"
@@ -50,6 +55,12 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
       - run: pip install -r tests/ci-requirements.txt
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        if: matrix.platform == 'arm64'
+        with:
+          platforms: arm64
 
       # Build images
       - run: ./hooks/build
