@@ -14,7 +14,7 @@ on:
     - cron: 0 0 1 * *
 
 jobs:
-  build-test-push:
+  build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -34,9 +34,9 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-        if: matrix.platform == 'arm64'
+        if: matrix.platform != 'amd64'
         with:
-          platforms: arm64
+          platforms: ${{ matrix.platform }}
 
       - name: Get build date
         id: date
@@ -58,7 +58,7 @@ jobs:
           containerfiles: |
             Dockerfile
           build-args: |
-            BUILD_DATE=${{ steps.date.output }}
+            BUILD_DATE=${{ steps.date.output.date }}
             VCS_REF=${{ github.sha }}
             BASE_TAG=${{ matrix.pg_version }}-alpine
 
