@@ -10,16 +10,6 @@ VERSION = local.env["DOCKER_TAG"]
 # Log all locally available images; will help to pin images
 docker["image", "ls", "--digests", REPO] & FG
 
-# Login in Docker Hub
-docker(
-    "login",
-    "--username",
-    local.env["REGISTRY_USERNAME"],
-    "--password",
-    local.env["REGISTRY_TOKEN"],
-    REGISTRY,
-)
-
 # Push built images
 local_image = "%s:%s" % (REPO, VERSION)
 public_image = "%s/%s%s:%s" % (REGISTRY, REPO, SUFFIX, VERSION)
