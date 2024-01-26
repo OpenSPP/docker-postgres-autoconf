@@ -47,6 +47,8 @@ jobs:
           tags: ${{ matrix.pg_version }}-alpine ${{ matrix.pg_version == env.LATEST_RELEASE && 'latest' }}
           context: .
           platforms: linux/${{ matrix.platform }}
+          containerfiles: |
+            Dockerfile
           build-args: |
             BUILD_DATE=${{ steps.date.output }}
             VCS_REF=${{ github.sha }}
