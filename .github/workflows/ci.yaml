@@ -47,7 +47,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: postgres-autoconf
-          tags: ${{ matrix.platform == 'amd64' && format('{0}-alpine', matrix.pg_version) || format('{0}-alpine-{1}', matrix.pg_version, matrix.platform) }}${{ matrix.pg_version == env.PG_LATEST && format(' latest-{0}', matrix.platform) }}
+          tags: ${{ matrix.platform == 'amd64' && format('{0}-alpine', matrix.pg_version) || format('{0}-alpine-{1}', matrix.pg_version, matrix.platform) }}${{ matrix.pg_version == env.PG_LATEST && (matrix.platform == 'amd64' && ' latest') || format('latest-{0}', matrix.platform) || '' }}
           context: .
           platforms: linux/${{ matrix.platform }}
           containerfiles: |
