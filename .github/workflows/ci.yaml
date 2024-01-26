@@ -28,7 +28,7 @@ jobs:
           - "arm64"
 
     env:
-      LATEST_RELEASE: "16"
+      PG_LATEST: "16"
     steps:
       - uses: actions/checkout@v4
 
@@ -47,7 +47,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: postgres-autoconf
-          tags: ${{ matrix.pg_version }}-alpine${{ matrix.platform != 'amd64' && '-' + matrix.platform || '' }}${{ matrix.pg_version == env.LATEST_RELEASE && ' latest' || '' }}${{ matrix.pg_version == env.LATEST_RELEASE && matrix.platform != 'amd64' && '-' + matrix.platform || '' }}
+          tags: ${{ matrix.platform == 'amd64' && format('{0}-alpine', matrix.pg_version) || format('{0}-alpine-{1}', matrix.pg_version, matrix.platform) }}${{ matrix.pg_version == env.PG_LATEST && format(' latest-{0}', matrix.platform) }}
           context: .
           platforms: linux/${{ matrix.platform }}
           containerfiles: |
