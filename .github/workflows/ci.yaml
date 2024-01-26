@@ -45,7 +45,7 @@ jobs:
       - name: Get latest tag
         id: tag-latest
         if: matrix.pg_version == env.PG_LATEST
-        run: echo "tag=${{ matrix.platform == 'amd64' && ' latest') || format(' latest-{0}', matrix.platform) }}" >> $GITHUB_OUTPUT
+        run: echo "tag=${{ matrix.platform == 'amd64' && ' latest' || format(' latest-{0}', matrix.platform) }}" >> $GITHUB_OUTPUT
 
       - name: Build image
         id: build
