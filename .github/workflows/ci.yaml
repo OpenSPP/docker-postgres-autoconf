@@ -22,7 +22,7 @@ jobs:
         pg_version:
           - "16"
           - "15"
-          - "13"
+          # - "13"
         platform:
           - "amd64"
           - "arm64"
@@ -67,7 +67,7 @@ jobs:
         with:
           image: ${{ steps.build.outputs.image }}
           tags: ${{ steps.build.outputs.tags }}
-          registry: ghcr.io/cmwedding-it
+          registry: ghcr.io/openspp
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
