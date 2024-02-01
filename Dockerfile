@@ -22,6 +22,20 @@ RUN apk add --no-cache python3 \
 RUN apk add --no-cache py3-netifaces
 COPY autoconf-entrypoint /
 
+RUN apk add --no-cache -t .build \
+    postgresql-dev postgresql-contrib \
+    curl-dev libcurl \
+    wget jq cmake build-base ca-certificates py3-pip pipx && \
+    pipx ensurepath && \
+	pipx install pgxnclient && \
+    export PATH=$PATH:/root/.local/bin && \
+    pgxn install pg_qualstats && \
+    pgxn install pg_stat_kcache && \
+    pgxn install pg_track_settings && \
+    pgxn install powa && \
+    pgxn install postgresql_anonymizer && \
+    apk del .build
+
 # Metadata
 ARG VCS_REF
 ARG BUILD_DATE
