@@ -48,7 +48,7 @@ jobs:
         run: echo "tag=${{ matrix.platform == 'amd64' && ' latest' || format(' latest-{0}', matrix.platform) }}" >> $GITHUB_OUTPUT
 
       - name: Build image Postgres
-        id: build
+        id: buildpg
         uses: redhat-actions/buildah-build@v2
         with:
           image: postgres-autoconf
@@ -62,17 +62,8 @@ jobs:
             VCS_REF=${{ github.sha }}
             BASE_TAG=${{ matrix.pg_version }}-alpine
 
-      - name: Push image Postgres to GHCR
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build.outputs.image }}
-          tags: ${{ steps.build.outputs.tags }}
-          registry: ghcr.io/openspp
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
       - name: Build image PostGIS
-        id: build
+        id: buildpgis
         uses: redhat-actions/buildah-build@v2
         with:
           image: postgis-autoconf
@@ -86,11 +77,20 @@ jobs:
             VCS_REF=${{ github.sha }}
             BASE_TAG=${{ matrix.pg_version }}-alpine
 
+      - name: Push image Postgres to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.buildpg.outputs.image }}
+          tags: ${{ steps.buildpg.outputs.tags }}
+          registry: ghcr.io/openspp
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Push image PostGIS to GHCR
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: ${{ steps.build.outputs.image }}
-          tags: ${{ steps.build.outputs.tags }}
+          image: ${{ steps.buildpgis.outputs.image }}
+          tags: ${{ steps.buildpgis.outputs.tags }}
           registry: ghcr.io/openspp
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
