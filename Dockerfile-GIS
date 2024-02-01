@@ -1,3 +1,4 @@
+ARG BASE_TAG
 FROM ghcr.io/openspp/postgres-autoconf:${BASE_TAG}
 
 #RUN apk add --no-cache -t .build \
