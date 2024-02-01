@@ -47,7 +47,7 @@ jobs:
         if: matrix.pg_version == env.PG_LATEST
         run: echo "tag=${{ matrix.platform == 'amd64' && ' latest' || format(' latest-{0}', matrix.platform) }}" >> $GITHUB_OUTPUT
 
-      - name: Build image
+      - name: Build image Postgres
         id: build
         uses: redhat-actions/buildah-build@v2
         with:
@@ -62,7 +62,31 @@ jobs:
             VCS_REF=${{ github.sha }}
             BASE_TAG=${{ matrix.pg_version }}-alpine
 
-      - name: Push image to GHCR
+      - name: Push image Postgres to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build.outputs.image }}
+          tags: ${{ steps.build.outputs.tags }}
+          registry: ghcr.io/openspp
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build image PostGIS
+        id: build
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: postgis-autoconf
+          tags: ${{ matrix.platform == 'amd64' && format('{0}-alpine', matrix.pg_version) || format('{0}-alpine-{1}', matrix.pg_version, matrix.platform) }}${{ steps.tag-latest.output.tag || '' }}
+          context: .
+          platforms: linux/${{ matrix.platform }}
+          containerfiles: |
+            Dockerfile-GIS
+          build-args: |
+            BUILD_DATE=${{ steps.date.output.date }}
+            VCS_REF=${{ github.sha }}
+            BASE_TAG=${{ matrix.pg_version }}-alpine
+
+      - name: Push image PostGIS to GHCR
         uses: redhat-actions/push-to-registry@v2
         with:
           image: ${{ steps.build.outputs.image }}
