@@ -52,13 +52,13 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: postgres-autoconf
-          tags: ${{ matrix.platform == 'amd64' && format('{0}-alpine', matrix.pg_version) || format('{0}-alpine-{1}', matrix.pg_version, matrix.platform) }}${{ steps.tag-latest.output.tag || '' }}
+          tags: ${{ matrix.platform == 'amd64' && format('{0}-alpine', matrix.pg_version) || format('{0}-alpine-{1}', matrix.pg_version, matrix.platform) }}${{ steps.tag-latest.outputs.tag || '' }}
           context: .
           platforms: linux/${{ matrix.platform }}
           containerfiles: |
             Dockerfile
           build-args: |
-            BUILD_DATE=${{ steps.date.output.date }}
+            BUILD_DATE=${{ steps.date.outputs.date }}
             VCS_REF=${{ github.sha }}
             BASE_TAG=${{ matrix.pg_version }}-alpine
 
