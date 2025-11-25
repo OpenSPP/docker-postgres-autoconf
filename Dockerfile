@@ -1,7 +1,9 @@
 ARG BASE_TAG
 FROM docker.io/postgres:${BASE_TAG}
+
 ENTRYPOINT [ "/autoconf-entrypoint" ]
 CMD []
+
 ENV CERTS="{}" \
     CONF_EXTRA="" \
     LAN_AUTH_METHOD=md5 \
@@ -15,25 +17,46 @@ ENV CERTS="{}" \
     WAN_DATABASES='["all"]' \
     WAN_HBA_TPL="{connection} {db} {user} {cidr} {meth}" \
     WAN_TLS=1 \
-    WAN_USERS='["all"]'
-RUN apk add --no-cache python3 \
-    && mkdir -p /etc/postgres \
-    && chmod a=rwx /etc/postgres
-RUN apk add --no-cache py3-netifaces
+    WAN_USERS='["all"]' \
+    HBA_EXTRA_RULES=""
+
+# Base runtime deps + pgvector (if available) + writable config dir
+RUN set -eux; \
+    apk add --no-cache python3 py3-netifaces; \
+    if [ "${PG_MAJOR:-0}" -ge 12 ]; then \
+        apk add --no-cache "postgresql${PG_MAJOR}-pgvector" || apk add --no-cache postgresql-pgvector || true; \
+        if [ -d "/usr/share/postgresql${PG_MAJOR}/extension" ]; then \
+            cp /usr/share/postgresql${PG_MAJOR}/extension/vector* /usr/local/share/postgresql/extension/; \
+        elif [ -d "/usr/share/postgresql/extension" ]; then \
+            cp /usr/share/postgresql/extension/vector* /usr/local/share/postgresql/extension/; \
+        fi; \
+        so_path=$(find /usr/lib -name vector.so | head -n 1); \
+        if [ -n "${so_path}" ]; then \
+            cp "${so_path}" /usr/local/lib/postgresql/; \
+        fi; \
+    fi; \
+    mkdir -p /etc/postgres; \
+    chmod a=rwx /etc/postgres
+
 COPY autoconf-entrypoint /
 
-RUN apk add --no-cache -t .build \
-    postgresql-dev postgresql-contrib \
-    curl-dev libcurl \
-    wget jq cmake build-base ca-certificates py3-pip pipx && \
-    pipx ensurepath && \
-	pipx install pgxnclient && \
-    export PATH=$PATH:/root/.local/bin && \
-    pgxn install pg_qualstats && \
-    pgxn install pg_stat_kcache && \
-    pgxn install pg_track_settings && \
-    pgxn install powa && \
-    pgxn install postgresql_anonymizer && \
+# Optional pgxn extensions (best-effort to keep build working on new PG majors)
+RUN set -eux; \
+    apk add --no-cache -t .build \
+        "postgresql${PG_MAJOR}-dev" "postgresql${PG_MAJOR}-contrib" \
+        curl-dev libcurl \
+        wget jq cmake build-base ca-certificates py3-pip pipx \
+      || apk add --no-cache -t .build \
+        postgresql-dev postgresql-contrib \
+        curl-dev libcurl \
+        wget jq cmake build-base ca-certificates py3-pip pipx; \
+    pipx ensurepath; \
+    export PATH="$PATH:/root/.local/bin"; \
+    for ext in pg_qualstats pg_stat_kcache pg_track_settings powa postgresql_anonymizer; do \
+        if ! pgxn install "$ext"; then \
+            echo "WARN: skipping $ext (pgxn install failed)" >&2; \
+        fi; \
+    done; \
     apk del .build
 
 # Metadata

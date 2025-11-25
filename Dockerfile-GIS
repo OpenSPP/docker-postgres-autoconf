@@ -14,12 +14,8 @@ FROM ghcr.io/openspp/postgres-autoconf:${BASE_TAG}
 #    pgxn install postgresql_anonymizer && \
 #    apk del .build
 
-ENV POSTGIS_VERSION 3.4.1
-ENV POSTGIS_SHA256 473c09cbeb68c6e39c882c35e716994d2f8c1e614611162ef3d2a54716cbb74c
-
-ENV DOCKER_PG_LLVM_DEPS \
-		llvm15-dev \
-		clang15
+ENV POSTGIS_VERSION 3.6.1
+ENV POSTGIS_SHA256 849391e75488a749663fbc8d63b846d063d387d286c04dea062820476f84c8f6
 
 RUN set -eux \
     && apk add --no-cache --virtual .fetch-deps \
@@ -86,7 +82,7 @@ RUN set -eux \
     && mkdir /tempdb \
     && chown -R postgres:postgres /tempdb \
     && su postgres -c 'pg_ctl -D /tempdb init' \
-    && su postgres -c 'pg_ctl -D /tempdb -c -l /tmp/logfile -o '-F' start ' \
+    && su postgres -c "pg_ctl -D /tempdb -c -l /tmp/logfile -o '-F' start" \
     && cd regress \
     && make -j$(nproc) check RUNTESTFLAGS=--extension   PGUSER=postgres \
     \
@@ -132,4 +128,3 @@ RUN set -eux \
 
 COPY ./initdb-postgis.sh /docker-entrypoint-initdb.d/10_postgis.sh
 COPY ./update-postgis.sh /usr/local/bin
-

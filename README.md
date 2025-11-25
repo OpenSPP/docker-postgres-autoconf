@@ -1,12 +1,19 @@
 # PostgreSQL Auto-Conf
 
+OpenSPP-flavoured fork of [Tecnativa/docker-postgres-autoconf](https://github.com/Tecnativa/docker-postgres-autoconf) with:
+
+- Support for PostgreSQL 18 (latest) plus 15/16/17 builds.
+- Optional PostGIS image built from source (3.6.x as of Nov 2025).
+- Extra pgxn extensions (powa, pg_qualstats, pg_stat_kcache, pg_track_settings, postgresql_anonymizer) preinstalled on the base image when available for the target PostgreSQL version.
+- New upstream features: pgvector packaged for PG ≥ 12 and `HBA_EXTRA_RULES` support.
+
 ## What
 
 Image that configures Postgres before starting it.
 
 ## Why
 
-To automate dealing with specific users accessing from specific networks to a postgres server.
+To automate dealing with specific users accessing from specific networks to a Postgres server.
 
 ## How
 
@@ -35,7 +42,7 @@ JSON object with some or all of these keys:
 - `server.cert.pem`: PEM contents for Postgres' `ssl_cert_file` parameter. The Postgres server will identify himself and encrypt the connection with this certificate.
 - `server.key.pem`: PEM contents for Postgres' `ssl_key_file` parameter. The Postgres server will identify himself and encrypt the connection with this private key.
 
-If you pass `server.cert.pem`, you should pass `server.key.pem` too, and viceversa, or TLS encryption will not be properly configured. You also need both of them if you use `client.ca.cert.pem`.
+If you pass `server.cert.pem`, you should pass `server.key.pem` too, and vice versa, or TLS encryption will not be properly configured. You also need both of them if you use `client.ca.cert.pem`.
 
 It is safer to mount files with secrets instead of passing a JSON string in an env variable. You can mount the equivalents:
 
@@ -67,7 +74,7 @@ Some placeholders can be expanded. See the [`Dockerfile`][] to know them.
 
 #### `LAN_TLS`
 
-Wether to enable or not TLS in LAN connections.
+Whether to enable or not TLS in LAN connections.
 
 #### `LAN_USERS`
 
@@ -93,8 +100,27 @@ Some placeholders can be expanded. See the [`Dockerfile`][] to know them.
 
 #### `WAN_TLS`
 
-Wether to enable or not TLS in WAN connections.
+Whether to enable or not TLS in WAN connections.
 
 #### `WAN_USERS`
 
 Users allowed to connect from WAN.
+
+#### `HBA_EXTRA_RULES`
+
+JSON array of additional `pg_hba.conf` rules to append. Each array element should be a string representing a valid `pg_hba.conf` line.
+
+Example `HBA_EXTRA_RULES` format in an `.env` file:
+
+```
+HBA_EXTRA_RULES=["host all all 192.168.1.0/24 md5", "hostssl mydb myuser 10.0.0.0/8 scram-sha-256"]
+```
+
+This adds the following lines to `pg_hba.conf`:
+
+```
+host all all 192.168.1.0/24 md5
+hostssl mydb myuser 10.0.0.0/8 scram-sha-256
+```
+
+[`Dockerfile`]: https://github.com/openspp/docker-postgres-autoconf/blob/master/Dockerfile
